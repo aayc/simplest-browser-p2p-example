@@ -11,4 +11,6 @@ Then, load http://localhost:8000/index.html#init.  In the "your id" text area it
 
 Now try typing text into the message box, and click send.  Check the other tab - the message arrived and the peers are connected.
 
+An example with audio and video can be found in the with-audiovideo branch.  Be warned - running two tabs will cause an audio feedback loop if you're running them from the same computer!
+
 Hope this helps!
