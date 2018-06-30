@@ -10,6 +10,11 @@
 		<textarea id="otherId"></textarea>
 		<button id="connect">connect</button><br />
 
+		<br />
+		<video width="320" height="240" controls>
+		</video>
+		<br />
+
 		<label>Enter Message:</label><br />
 		<textarea id="yourMessage"></textarea>
 		<button id="send">send</button>
@@ -17,19 +22,69 @@
 
 		<script src="simplepeer.min.js" charset="utf-8"></script>
 		<script>
+			navigator.getUserMedia({ video: false, audio: true}, (stream) => {
+				var peer = new SimplePeer({
+					initiator: location.hash == "#init",
+					trickle: false,
+					stream: stream
+				})
+
+				peer.on('signal', (data) => {
+					document.getElementById("yourId").value = JSON.stringify(data)
+				})
+
+				document.getElementById("connect").addEventListener("click", function () {
+					var otherId = JSON.parse(document.getElementById("otherId").value)
+					peer.signal(otherId)
+				})
+
+				document.getElementById("send").addEventListener("click", function () {
+					var yourMessage = document.getElementById("yourMessage").value
+					peer.send(yourMessage)
+				})
+
+				peer.on('data', function (data) {
+					document.getElementById("messages").textContent += data + '\n'
+				})
+
+				peer.on('stream', (stream) => {
+					console.log("got pushed stream")
+					var video = document.querySelector('video')
+					console.log("video: " + video)
+					video.srcObject = stream
+					video.play()
+				})
+
+
+
+			}, ()=>{})
+
+
+/*
 			var peer = new SimplePeer({
 				initiator: location.hash == "#init",
 				trickle: false
 			})
+			var m_stream;
+			console.log(peer.initiator + " is the initiator")
 
 			peer.on('signal', function (data) {
-				console.log("hello")
 				document.getElementById("yourId").value = JSON.stringify(data)
 			})
+
+			if (peer.initiator) {
+				navigator.getUserMedia({ video: true, audio: false }, (stream) => {
+					m_stream = stream
+				}, () => {} )
+			}
 
 			document.getElementById("connect").addEventListener("click", function () {
 				var otherId = JSON.parse(document.getElementById("otherId").value)
 				peer.signal(otherId)
+				if (peer.initiator) {
+					console.log("stream: " + m_stream)
+					peer.send(m_stream)
+				}
 			})
 
 			document.getElementById("send").addEventListener("click", function () {
@@ -40,6 +95,39 @@
 			peer.on('data', function (data) {
 				document.getElementById("messages").textContent += data + '\n'
 			})
+
+			peer.on('stream', (stream) => {
+				console.log("got pushed stream")
+				var video = document.querySelector('video')
+				console.log("video: " + video)
+				video.src = window.URL.createObjectURL(stream)
+				video.play()
+			})
+
+			/*
+			if (location.hash == "#init") {
+				navigator.getUserMedia({ video: true, audio: true }, gotMedia, function () {})
+
+				function gotMedia (stream) {
+				  var peer1 = new Peer({ initiator: true, stream: stream })
+
+				  peer1.on('signal', function (data) {
+				    peer2.signal(data)
+				  })
+
+				  peer2.on('signal', function (data) {
+				    peer1.signal(data)
+				  })
+
+				  peer2.on('stream', function (stream) {
+				    // got remote video stream, now let's show it in a video tag
+				    var video = document.querySelector('video')
+				    video.src = window.URL.createObjectURL(stream)
+				    video.play()
+				  })
+				}
+			}*/
+			
 
 
 		</script>
